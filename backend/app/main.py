@@ -83,6 +83,12 @@ app.add_middleware(
     expose_headers=["*"],  # Expose all headers
 )
 
+# Add TrustedHost middleware to allow Railway health checks
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=["*"]  # Allow all hosts including Railway health checks
+)
+
 # Add authentication middleware
 app.add_middleware(
     AuthMiddleware,
