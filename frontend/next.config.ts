@@ -6,11 +6,11 @@ const nextConfig: NextConfig = {
     // Ensure path aliases work properly
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.resolve('./src'),
-      '@/lib': path.resolve('./src/lib'),
-      '@/components': path.resolve('./src/components'),
-      '@/hooks': path.resolve('./src/hooks'),
-      '@/app': path.resolve('./src/app'),
+      '@': path.resolve(__dirname, 'src'),
+      '@/lib': path.resolve(__dirname, 'src/lib'),
+      '@/components': path.resolve(__dirname, 'src/components'),
+      '@/hooks': path.resolve(__dirname, 'src/hooks'),
+      '@/app': path.resolve(__dirname, 'src/app'),
     };
     return config;
   },
