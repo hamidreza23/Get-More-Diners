@@ -26,7 +26,12 @@ logger = logging.getLogger(__name__)
 # Get settings
 settings = get_settings()
 
-# Create async engine
+# Create async engine with Transaction pooler compatibility
+connect_args = {}
+if "pooler.supabase.com:6543" in settings.database_url:
+    # Disable statement cache for Transaction pooler compatibility
+    connect_args["statement_cache_size"] = 0
+
 engine = create_async_engine(
     settings.database_url,
     echo=settings.debug,  # Log SQL queries in debug mode
@@ -34,6 +39,7 @@ engine = create_async_engine(
     pool_recycle=3600,    # Recycle connections every hour
     pool_size=20,         # Connection pool size
     max_overflow=10,      # Additional connections beyond pool_size
+    connect_args=connect_args,  # Pass asyncpg-specific arguments
 )
 
 # Create async session factory
