@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase'
+import { createClient } from '../../lib/supabase'
 import { AppNav } from '@/components/nav/app-nav'
 
 export default function AppLayout({
