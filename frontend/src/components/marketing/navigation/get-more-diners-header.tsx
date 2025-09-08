@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { createClient } from "../../../lib/supabase"
+import { createClient } from "@/lib/supabase"
 import { GetMoreDinersLogo } from "@/components/marketing/logos/get-more-diners-logo"
 import { Icon } from "@/components/ui/icon"
 import { Button } from "@/components/ui/button"

@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Icon } from "@/components/ui/icon"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { api, type Diner, type SearchDinersParams, type FilterOptionsResponse } from "../../../lib/api"
+import { api, type Diner, type SearchDinersParams, type FilterOptionsResponse } from "@/lib/api"
 import { toast } from "sonner"
 
 // Interest labels for display

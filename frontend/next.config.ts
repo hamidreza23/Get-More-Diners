@@ -2,16 +2,25 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
-  webpack: (config) => {
-    // Ensure path aliases work properly
+  experimental: {
+    // Enable better module resolution
+    esmExternals: true,
+  },
+  webpack: (config, { isServer }) => {
+    // Ensure path aliases work properly for both client and server
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.resolve(__dirname, 'src'),
-      '@/lib': path.resolve(__dirname, 'src/lib'),
-      '@/components': path.resolve(__dirname, 'src/components'),
-      '@/hooks': path.resolve(__dirname, 'src/hooks'),
-      '@/app': path.resolve(__dirname, 'src/app'),
+      '@': path.resolve(process.cwd(), 'src'),
+      '@/lib': path.resolve(process.cwd(), 'src/lib'),
+      '@/components': path.resolve(process.cwd(), 'src/components'),
+      '@/hooks': path.resolve(process.cwd(), 'src/hooks'),
+      '@/app': path.resolve(process.cwd(), 'src/app'),
     };
+    
+    // Ensure proper module resolution
+    config.resolve.extensions = ['.js', '.jsx', '.ts', '.tsx', '.json'];
+    config.resolve.modules = [path.resolve(process.cwd(), 'src'), 'node_modules'];
+    
     return config;
   },
 };
