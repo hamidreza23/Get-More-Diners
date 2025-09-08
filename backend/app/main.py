@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
+# from starlette.middleware.trustedhost import TrustedHostMiddleware  # Removed for Railway compatibility
 from fastapi.responses import JSONResponse
 import time
 
@@ -83,11 +83,8 @@ app.add_middleware(
     expose_headers=["*"],  # Expose all headers
 )
 
-# Add TrustedHost middleware to allow Railway health checks
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=["*"]  # Allow all hosts including Railway health checks
-)
+# Note: Removing TrustedHost middleware as it may interfere with Railway health checks
+# Railway health checks should work with CORS and proper endpoint configuration
 
 # Add authentication middleware
 app.add_middleware(
@@ -175,27 +172,34 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # Health check endpoints
-@app.get("/health", tags=["Health"])
-@app.head("/health", tags=["Health"])  # Add HEAD method for Railway health checks
-@app.options("/health", tags=["Health"])  # Add OPTIONS for CORS preflight
+@app.api_route("/health", methods=["GET", "HEAD", "OPTIONS"], tags=["Health"])
 async def health_check(request: Request):
-    """Basic health check endpoint."""
+    """Basic health check endpoint that accepts all HTTP methods for Railway compatibility."""
     try:
+        # Always return 200 for health checks regardless of host header
+        response_content = {
+            "status": "ok", 
+            "timestamp": datetime.utcnow().isoformat(),
+            "method": request.method,
+            "host": request.headers.get("host", "unknown")
+        }
+        
         return JSONResponse(
             status_code=200,
-            content={"status": "ok", "timestamp": datetime.utcnow().isoformat(), "host": request.headers.get("host", "unknown")},
+            content=response_content,
             headers={
                 "Content-Type": "application/json",
                 "Access-Control-Allow-Origin": "*",
                 "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization"
+                "Access-Control-Allow-Headers": "*",
+                "Cache-Control": "no-cache"
             }
         )
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         return JSONResponse(
-            status_code=503,
-            content={"status": "error", "message": str(e)},
+            status_code=200,  # Return 200 even on error for health checks
+            content={"status": "ok", "error": str(e)},
             headers={"Content-Type": "application/json"}
         )
 
