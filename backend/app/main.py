@@ -42,9 +42,15 @@ async def lifespan(app: FastAPI):
     
     # Debug environment variables
     logger.info(f"Environment: {settings.environment}")
-    logger.info(f"Database URL: {settings.database_url[:50]}...")
-    logger.info(f"Database URL Port: {settings.database_url.split(':')[-2] if ':' in settings.database_url else 'unknown'}")
+    logger.info(f"Database URL: {settings.database_url}")
+    logger.info(f"Database URL Port: {settings.database_url.split(':')[-1].split('/')[0] if ':' in settings.database_url else 'unknown'}")
     logger.info(f"Supabase URL: {settings.supabase_url}")
+    
+    # Force correct database URL for Railway deployment
+    if settings.environment == "production" and "5432" in settings.database_url:
+        logger.warning("Detected old port 5432, forcing update to 6543")
+        settings.database_url = settings.database_url.replace(":5432/", ":6543/")
+        logger.info(f"Updated Database URL: {settings.database_url}")
     
     await init_db()
     logger.info("Database initialized")
