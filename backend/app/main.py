@@ -171,13 +171,19 @@ async def global_exception_handler(request: Request, exc: Exception):
 # Health check endpoints
 @app.get("/health", tags=["Health"])
 @app.head("/health", tags=["Health"])  # Add HEAD method for Railway health checks
-async def health_check():
+@app.options("/health", tags=["Health"])  # Add OPTIONS for CORS preflight
+async def health_check(request: Request):
     """Basic health check endpoint."""
     try:
         return JSONResponse(
             status_code=200,
-            content={"status": "ok", "timestamp": datetime.utcnow().isoformat()},
-            headers={"Content-Type": "application/json"}
+            content={"status": "ok", "timestamp": datetime.utcnow().isoformat(), "host": request.headers.get("host", "unknown")},
+            headers={
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization"
+            }
         )
     except Exception as e:
         logger.error(f"Health check failed: {e}")
