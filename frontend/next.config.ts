@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve('./src'),
+      '@/lib': path.resolve('./src/lib'),
+      '@/components': path.resolve('./src/components'),
+      '@/hooks': path.resolve('./src/hooks'),
+      '@/app': path.resolve('./src/app'),
     };
     return config;
   },
