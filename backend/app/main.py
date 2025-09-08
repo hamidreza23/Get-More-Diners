@@ -40,10 +40,11 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting Restaurant SaaS API...")
     
-    # Debug environment variables
-    logger.info(f"Environment: {settings.environment}")
-    logger.info(f"Database URL: {settings.database_url[:50]}...")
-    logger.info(f"Supabase URL: {settings.supabase_url}")
+        # Debug environment variables
+        logger.info(f"Environment: {settings.environment}")
+        logger.info(f"Database URL: {settings.database_url[:50]}...")
+        logger.info(f"Database URL Port: {settings.database_url.split(':')[-2] if ':' in settings.database_url else 'unknown'}")
+        logger.info(f"Supabase URL: {settings.supabase_url}")
     
     await init_db()
     logger.info("Database initialized")
