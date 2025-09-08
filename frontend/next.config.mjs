@@ -14,7 +14,10 @@ const nextConfig = {
     config.resolve.alias = {
       ...(config.resolve.alias || {}),
       '@': path.resolve(__dirname, 'src'),
+      '@/': path.resolve(__dirname, 'src'),
     }
+    // Also allow absolute imports from src without alias if needed
+    config.resolve.modules = [path.resolve(__dirname, 'src'), 'node_modules']
     return config
   },
 }
