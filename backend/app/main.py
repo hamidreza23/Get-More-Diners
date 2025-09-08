@@ -55,9 +55,9 @@ app = FastAPI(
     title=settings.project_name,
     description="A comprehensive SaaS platform for restaurant management",
     version="1.0.0",
-    openapi_url=f"{settings.api_v1_str}/openapi.json",
-    docs_url=f"{settings.api_v1_str}/docs",
-    redoc_url=f"{settings.api_v1_str}/redoc",
+    openapi_url="/api/v1/openapi.json",
+    docs_url="/api/v1/docs",
+    redoc_url="/api/v1/redoc",
     lifespan=lifespan,
 )
 
@@ -189,56 +189,56 @@ async def detailed_health_check():
 # API Routes
 app.include_router(
     auth_routes.router,
-    prefix=f"{settings.api_v1_str}/auth",
+    prefix="/api/v1/auth",
     tags=["Authentication"]
 )
 
 app.include_router(
     me_routes.router,
-    prefix=f"{settings.api_v1_str}/me",
+    prefix="/api/v1/me",
     tags=["User Profile"]
 )
 
 app.include_router(
     diners_api.router,
-    prefix=f"{settings.api_v1_str}/diners",
+    prefix="/api/v1/diners",
     tags=["Diners"]
 )
 
 app.include_router(
     ai_api.router,
-    prefix=f"{settings.api_v1_str}/ai",
+    prefix="/api/v1/ai",
     tags=["AI Features"]
 )
 
 app.include_router(
     campaigns_api.router,
-    prefix=f"{settings.api_v1_str}/campaigns",
+    prefix="/api/v1/campaigns",
     tags=["Campaigns"]
 )
 
 # Keep original routes for reference/additional functionality
 app.include_router(
     restaurant_routes.router,
-    prefix=f"{settings.api_v1_str}/restaurants",
+    prefix="/api/v1/restaurants",
     tags=["Restaurants (Extended)"]
 )
 
 app.include_router(
     diners_api.router,
-    prefix=f"{settings.api_v1_str}/diners-extended",
+    prefix="/api/v1/diners-extended",
     tags=["Diners (Extended)"]
 )
 
 app.include_router(
     campaign_routes.router,
-    prefix=f"{settings.api_v1_str}/campaigns-extended",
+    prefix="/api/v1/campaigns-extended",
     tags=["Campaigns (Extended)"]
 )
 
 app.include_router(
     ai_routes.router,
-    prefix=f"{settings.api_v1_str}/ai-extended",
+    prefix="/api/v1/ai-extended",
     tags=["AI Features (Extended)"]
 )
 
@@ -250,7 +250,7 @@ async def root():
     return {
         "message": "Restaurant SaaS API",
         "version": "1.0.0",
-        "docs": f"{settings.api_v1_str}/docs",
+        "docs": "/api/v1/docs",
         "health": "/health",
         "environment": settings.environment,
     }
