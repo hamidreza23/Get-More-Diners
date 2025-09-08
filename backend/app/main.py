@@ -51,15 +51,22 @@ async def lifespan(app: FastAPI):
     if settings.environment == "production" and "pooler.supabase.com:6543" in settings.database_url:
         logger.info("Using Supabase Transaction pooler (IPv4 compatible) for Railway")
     
-    await init_db()
-    logger.info("Database initialized")
+    try:
+        await init_db()
+        logger.info("Database initialized")
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+        logger.warning("Continuing startup without active DB connection. Detailed health will reflect DB status.")
     
     yield
     
     # Shutdown
     logger.info("Shutting down Restaurant SaaS API...")
-    await close_db()
-    logger.info("Database connections closed")
+    try:
+        await close_db()
+        logger.info("Database connections closed")
+    except Exception as e:
+        logger.warning(f"Error during DB shutdown: {e}")
 
 
 # Create FastAPI application
@@ -116,11 +123,15 @@ app.add_middleware(
 )
 
 # Add trusted host middleware for production
-if settings.environment == "production":
-    app.add_middleware(
-        TrustedHostMiddleware,
-        allowed_hosts=["*.yourdomain.com", "yourdomain.com"]
-    )
+try:
+    from starlette.middleware.trustedhost import TrustedHostMiddleware  # type: ignore
+    if settings.environment == "production" and False:  # disabled by default for compatibility
+        app.add_middleware(
+            TrustedHostMiddleware,
+            allowed_hosts=["*.yourdomain.com", "yourdomain.com"]
+        )
+except Exception:
+    logger.info("TrustedHostMiddleware not enabled")
 
 
 # Request timing middleware
