@@ -16,10 +16,6 @@ const nextConfig: NextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': srcPath,
-      '@/lib': path.resolve(srcPath, 'lib'),
-      '@/components': path.resolve(srcPath, 'components'),
-      '@/hooks': path.resolve(srcPath, 'hooks'),
-      '@/app': path.resolve(srcPath, 'app'),
     };
     
     // Ensure proper module resolution
