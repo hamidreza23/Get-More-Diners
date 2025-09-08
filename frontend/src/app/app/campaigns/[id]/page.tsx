@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '../../../../lib/supabase'
+import { createClient } from '@/lib/supabase'
+import { api, APIError } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -54,30 +55,19 @@ export default function CampaignDetailPage() {
   const loadCampaign = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        router.push('/signin')
-        return
-      }
+      if (!user) { router.push('/signin'); return }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/campaigns/${campaignId}`, {
-        headers: {
-          'Authorization': `Bearer ${user.access_token}`,
-        },
-      })
-
-      if (response.ok) {
-        const campaignData = await response.json()
-        setCampaign(campaignData)
-      } else if (response.status === 404) {
-        toast.error('Campaign not found')
-        router.push('/app/campaigns')
-      } else {
-        toast.error('Failed to load campaign')
-      }
+      const data = await api.getCampaign(campaignId)
+      setCampaign(data as any)
     } catch (error) {
-      console.error('Error loading campaign:', error)
-      toast.error('An unexpected error occurred')
+      if (error instanceof APIError) {
+        if (error.status === 401) { router.push('/signin'); return }
+        if (error.status === 404) { toast.error('Campaign not found'); router.push('/app/campaigns'); return }
+        toast.error(error.message || 'Failed to load campaign')
+      } else {
+        console.error('Error loading campaign:', error)
+        toast.error('An unexpected error occurred')
+      }
     } finally {
       setLoading(false)
     }
@@ -144,7 +134,6 @@ export default function CampaignDetailPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f9f9f9]">
-      <DineConnectHeader currentPage="Campaigns" />
       <main className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">

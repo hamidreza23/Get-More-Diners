@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Icon } from "@/components/ui/icon"
-import { api, type Campaign } from "../../lib/api"
+import { api, type Campaign } from "@/lib/api"
 import Link from "next/link"
 
 export default function DashboardPage() {

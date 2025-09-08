@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { createClient } from '../../lib/supabase'
+import { createClient } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { GetMoreDinersLogo } from '@/components/logos/get-more-diners-logo'
-import { api } from '../../lib/api'
+import { api } from '@/lib/api'
 import {
   Search,
   PenTool,
