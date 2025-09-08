@@ -28,9 +28,13 @@ settings = get_settings()
 
 # Create async engine with Transaction pooler compatibility
 connect_args = {}
-if "pooler.supabase.com:6543" in settings.database_url:
+logger.info(f"Database URL for connection: {settings.database_url}")
+if "pooler.supabase.com" in settings.database_url or ":6543" in settings.database_url:
     # Disable statement cache for Transaction pooler compatibility
     connect_args["statement_cache_size"] = 0
+    logger.info("Using Transaction pooler - disabled statement cache")
+else:
+    logger.info("Not using Transaction pooler - keeping default statement cache")
 
 engine = create_async_engine(
     settings.database_url,
