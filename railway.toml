@@ -3,7 +3,7 @@ root = "backend"
 builder = "NIXPACKS"
 
 [deploy]
-echo "web: pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port \$PORT" > backend/Procfile
+startCommand = "pip install -r requirements.txt && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
 healthcheckPath = "/health"
 
 [build.nixpacks]
