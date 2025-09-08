@@ -47,9 +47,9 @@ async def lifespan(app: FastAPI):
     logger.info(f"Supabase URL: {settings.supabase_url}")
     
     # Force correct database URL for Railway deployment
-    if settings.environment == "production" and "5432" in settings.database_url:
-        logger.warning("Detected old port 5432, forcing update to 6543")
-        settings.database_url = settings.database_url.replace(":5432/", ":6543/")
+    if settings.environment == "production" and "6543" in settings.database_url:
+        logger.warning("Detected pooler port 6543, trying direct connection 5432")
+        settings.database_url = settings.database_url.replace(":6543/", ":5432/")
         logger.info(f"Updated Database URL: {settings.database_url}")
     
     await init_db()

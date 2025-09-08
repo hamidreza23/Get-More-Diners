@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     supabase_service_role_key: str = Field(default="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3c3F3dXl2c2J5eHljYmN4aWp6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NzAwMzc3OSwiZXhwIjoyMDcyNTc5Nzc5fQ.tUv27y2g70wZmMcaO5nSunPVYwGiEO3cPpKIWj9kJF8", description="Supabase service role key")
     
     # Database Configuration (with demo default for testing)
-    database_url: str = Field(default="postgresql+asyncpg://postgres:restaurant-saas@db.fwsqwuyvsbyxycbcxijz.supabase.co:6543/postgres", description="PostgreSQL database URL")
+    database_url: str = Field(default="postgresql+asyncpg://postgres:restaurant-saas@db.fwsqwuyvsbyxycbcxijz.supabase.co:5432/postgres", description="PostgreSQL database URL")
     
     # JWT Configuration (with demo default for testing)
     jwt_jwks_url: str = Field(default="https://fwsqwuyvsbyxycbcxijz.supabase.co/auth/v1/keys", description="JWT JWKS endpoint URL")
