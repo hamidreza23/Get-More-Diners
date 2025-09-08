@@ -5,6 +5,7 @@ Restaurant SaaS API with Supabase integration.
 
 import logging
 from contextlib import asynccontextmanager
+from datetime import datetime
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -169,9 +170,22 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # Health check endpoints
 @app.get("/health", tags=["Health"])
+@app.head("/health", tags=["Health"])  # Add HEAD method for Railway health checks
 async def health_check():
     """Basic health check endpoint."""
-    return {"status": "ok"}
+    try:
+        return JSONResponse(
+            status_code=200,
+            content={"status": "ok", "timestamp": datetime.utcnow().isoformat()},
+            headers={"Content-Type": "application/json"}
+        )
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return JSONResponse(
+            status_code=503,
+            content={"status": "error", "message": str(e)},
+            headers={"Content-Type": "application/json"}
+        )
 
 
 @app.get("/health/detailed", tags=["Health"])
