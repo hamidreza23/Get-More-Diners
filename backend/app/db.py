@@ -32,35 +32,36 @@ settings = get_settings()
 connect_args = {}
 logger.info(f"Database URL for connection: {settings.database_url}")
 
-# Derive an effective URL: for MVP stability, rewrite Supabase pooler URL to direct DB host (5432)
+# Derive an effective URL: optionally rewrite Supabase pooler URL to direct DB host (5432)
 effective_database_url = settings.database_url
-try:
-    url = make_url(settings.database_url)
-    host = url.host or ""
-    port = url.port or None
-    if ("pooler.supabase.com" in host) or (port == 6543):
-        # Try to extract ref id from username 'postgres.<ref>'
-        ref = None
-        if url.username and "." in url.username:
-            parts = url.username.split(".")
-            if len(parts) >= 2 and parts[0] == "postgres":
-                ref = parts[1]
-        if ref:
-            rewritten = URL.create(
-                drivername=url.drivername,
-                username="postgres",
-                password=url.password,
-                host=f"db.{ref}.supabase.co",
-                port=5432,
-                database=url.database,
-                query=url.query,
-            )
-            effective_database_url = str(rewritten)
-            logger.info("Rewriting pooler URL to direct DB for MVP stability: %s", effective_database_url)
-        else:
-            logger.info("Pooler URL detected but could not extract ref; using pooler as-is")
-except Exception as e:
-    logger.warning("Failed to parse/possibly rewrite DATABASE_URL: %s", e)
+if settings.use_direct_db:
+    try:
+        url = make_url(settings.database_url)
+        host = url.host or ""
+        port = url.port or None
+        if ("pooler.supabase.com" in host) or (port == 6543):
+            # Try to extract ref id from username 'postgres.<ref>'
+            ref = None
+            if url.username and "." in url.username:
+                parts = url.username.split(".")
+                if len(parts) >= 2 and parts[0] == "postgres":
+                    ref = parts[1]
+            if ref:
+                rewritten = URL.create(
+                    drivername=url.drivername,
+                    username="postgres",
+                    password=url.password,
+                    host=f"db.{ref}.supabase.co",
+                    port=5432,
+                    database=url.database,
+                    query=url.query,
+                )
+                effective_database_url = str(rewritten)
+                logger.info("Rewriting pooler URL to direct DB for MVP stability: %s", effective_database_url)
+            else:
+                logger.info("Pooler URL detected but could not extract ref; using pooler as-is")
+    except Exception as e:
+        logger.warning("Failed to parse/possibly rewrite DATABASE_URL: %s", e)
 
 # If using Supabase, ensure TLS is used
 if "supabase.co" in effective_database_url:

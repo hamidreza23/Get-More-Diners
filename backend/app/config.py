@@ -76,6 +76,9 @@ class Settings(BaseSettings):
     
     # Logging
     log_level: str = Field(default="INFO", description="Logging level")
+
+    # DB connectivity options
+    use_direct_db: bool = Field(default=False, description="Use direct DB host (5432) instead of Supabase pooler", alias="USE_DIRECT_DB")
     
     class Config:
         env_file = ".env"
