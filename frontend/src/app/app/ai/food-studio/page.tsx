@@ -25,10 +25,12 @@ export default function FoodStudioPage() {
   const handleGenerate = async () => {
     if (!dishName.trim()) { toast.error('Please enter a dish name'); return }
     setLoading(true)
+    // show a short visual delay to display the loading bar
     // Demo: show the local sushi image instantly
     try {
+      await new Promise(r => setTimeout(r, 600))
       setImages(['/sushi.png'])
-      setPrompt(`Demo image for Sushi Platter — Tuna, Salmon, Avocado using local asset`)
+      setPrompt(`Demo image for ${dishName} — ${ingredients} using local asset`)
       toast.success('Image generated (demo)')
     } finally {
       setLoading(false)
@@ -95,11 +97,23 @@ export default function FoodStudioPage() {
                       <label className="text-sm font-medium text-slate-800 mb-2 block">Variations</label>
                       <Input type="number" min={1} max={4} value={variations} onChange={(e)=>setVariations(Math.max(1, Math.min(4, Number(e.target.value)||1)))} className="h-11" />
                     </div>
-                    <div className="flex justify-end">
+                    <div className="flex flex-col gap-2 items-end">
                       <Button onClick={handleGenerate} disabled={loading} className="h-11 px-6 bg-[#13a4ec] hover:bg-[#1193d4] text-white font-semibold">
                         <Icon name="auto_awesome" className="mr-2" />
                         {loading ? 'Generating...' : 'Generate'}
                       </Button>
+                      {loading && (
+                        <div className="h-1 w-full bg-slate-200 rounded overflow-hidden">
+                          <div className="h-full w-1/2 bg-[#13a4ec] animate-[loading_1.2s_ease_infinite]" style={{animationName: 'loading'}} />
+                          <style jsx>{`
+                            @keyframes loading {
+                              0% { transform: translateX(-100%); }
+                              50% { transform: translateX(0%); }
+                              100% { transform: translateX(100%); }
+                            }
+                          `}</style>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

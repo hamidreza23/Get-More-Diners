@@ -93,7 +93,23 @@ async def get_my_restaurant(
         restaurant = result.fetchone()
         
         if not restaurant:
-            return None
+            # MVP bootstrap: auto-create a minimal restaurant for new users
+            try:
+                insert_query = text("""
+                    INSERT INTO public.restaurants (
+                        id, owner_user_id, name, cuisine, city, state, contact_email, contact_phone, website_url, logo_url, caption
+                    ) VALUES (
+                        gen_random_uuid(), :user_id, 'My Restaurant', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+                    )
+                    RETURNING id, owner_user_id, name, cuisine, city, state,
+                              contact_email, contact_phone, website_url, logo_url, caption, created_at
+                """)
+                insert_result = await db.execute(insert_query, {"user_id": current_user_id})
+                await db.commit()
+                restaurant = insert_result.fetchone()
+            except Exception as e:
+                logger.error(f"Auto-create restaurant failed: {e}")
+                raise HTTPException(status_code=500, detail="Failed to initialize restaurant profile")
         
         # Convert to response format
         return RestaurantResponse(
