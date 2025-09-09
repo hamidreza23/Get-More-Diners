@@ -189,6 +189,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
             bool: True if path should be excluded
         """
         for exclude_path in self.exclude_paths:
+            # Treat root path specially: only exclude exact '/'
+            if exclude_path == "/":
+                if path == "/":
+                    return True
+                continue
             if path.startswith(exclude_path):
                 return True
         return False
