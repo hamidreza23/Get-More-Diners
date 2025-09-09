@@ -22,6 +22,8 @@ import logging
 
 from .config import get_settings
 from sqlalchemy.engine.url import make_url, URL
+import ssl
+import certifi
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +67,9 @@ if settings.use_direct_db:
 
 # If using Supabase, ensure TLS is used
 if "supabase.co" in effective_database_url:
-    connect_args["ssl"] = True
+    # Create a verified SSL context using certifi CA bundle
+    ssl_ctx = ssl.create_default_context(cafile=certifi.where())
+    connect_args["ssl"] = ssl_ctx
 
 # If still using pooler, disable prepared statement caches for PgBouncer transaction/statement poolers
 if "pooler.supabase.com" in effective_database_url or ":6543" in effective_database_url:

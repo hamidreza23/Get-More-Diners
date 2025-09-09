@@ -5,6 +5,7 @@ uvicorn[standard]==0.24.0
 # Database and ORM
 sqlalchemy[asyncio]==2.0.23
 asyncpg==0.29.0
+certifi>=2024.2.2
 
 # Supabase client
 supabase==2.3.4
