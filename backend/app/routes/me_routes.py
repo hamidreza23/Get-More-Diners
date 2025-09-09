@@ -111,6 +111,8 @@ async def get_my_restaurant(
             created_at=restaurant.created_at.isoformat() if restaurant.created_at else ""
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error getting user restaurant: {e}")
         raise HTTPException(

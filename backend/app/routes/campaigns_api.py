@@ -286,6 +286,8 @@ async def list_campaigns(
             for campaign in campaigns
         ]
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error listing campaigns: {e}")
         raise HTTPException(
