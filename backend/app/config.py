@@ -84,8 +84,11 @@ class Settings(BaseSettings):
         description="When using Supabase pooler, allow insecure TLS (no cert verification) to avoid self-signed CA issues",
         alias="DB_SSL_INSECURE",
     )
-    # AI demo mode: when true, /api/v1/ai/offer returns a deterministic mock if OpenAI is unavailable or fails
+    # AI options
+    # When true, /api/v1/ai/offer returns a deterministic mock if OpenAI is unavailable or fails
     ai_demo_mode: bool = Field(default=True, description="Return mocked AI offer for MVP/demo when upstream AI is unavailable", alias="AI_DEMO_MODE")
+    # Max seconds to wait for upstream AI (OpenAI) before falling back
+    ai_timeout_seconds: int = Field(default=8, description="AI upstream timeout in seconds", alias="AI_TIMEOUT")
     
     class Config:
         env_file = ".env"

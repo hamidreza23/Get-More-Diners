@@ -196,7 +196,7 @@ async def generate_offer(
         try:
             raw_content = await asyncio.wait_for(
                 offer_writer.generate_offer(agent_request, output_format),
-                timeout=8.0
+                timeout=float(settings.ai_timeout_seconds)
             )
         except Exception as e:
             logger.error(f"Offer writer failed or timed out: {e}")

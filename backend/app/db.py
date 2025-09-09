@@ -75,33 +75,63 @@ else:
         parsed_host = None
         parsed_port = None
 
-# If using Supabase, ensure TLS is used
+using_pooler = False
+drivername = None
+try:
+    url_obj_all = make_url(effective_database_url)
+    drivername = url_obj_all.drivername
+    host_all = url_obj_all.host or ""
+    port_all = url_obj_all.port or None
+    using_pooler = ("pooler.supabase.com" in host_all) or (port_all == 6543)
+except Exception:
+    using_pooler = (parsed_host and "pooler.supabase.com" in parsed_host) or (parsed_port == 6543)
+
+# If using Supabase, ensure TLS is used; adapt per driver
 if "supabase.co" in effective_database_url:
-    # For pooler hosts, allow insecure TLS by default (can be overridden) to avoid self-signed CA issues.
-    if (parsed_host and "pooler.supabase.com" in parsed_host) or (parsed_port == 6543):
+    if using_pooler:
+        # For PgBouncer pooler, prefer psycopg driver and libpq sslmode
+        try:
+            url_obj = make_url(effective_database_url)
+            dname = url_obj.drivername or ""
+            if "+asyncpg" in dname:
+                url_obj = url_obj.set(drivername=dname.replace("+asyncpg", "+psycopg"))
+                effective_database_url = str(url_obj)
+                logger.info("Switching driver to psycopg for PgBouncer compatibility: %s", effective_database_url)
+        except Exception as e:
+            logger.warning(f"Could not parse URL for driver switch: {e}")
+
+        # TLS for psycopg/libpq
         if settings.db_ssl_insecure:
-            insecure_ctx = ssl.create_default_context()
-            insecure_ctx.check_hostname = False
-            insecure_ctx.verify_mode = ssl.CERT_NONE
-            connect_args["ssl"] = insecure_ctx
+            connect_args["sslmode"] = "require"  # TLS without CA verification (demo-safe)
             logger.warning("Using INSECURE TLS (no cert verification) for Supabase pooler host. Set DB_SSL_INSECURE=false to enforce verification.")
         else:
-            verify_ctx = ssl.create_default_context(cafile=certifi.where())
-            connect_args["ssl"] = verify_ctx
+            connect_args["sslmode"] = "verify-full"
+            connect_args["sslrootcert"] = certifi.where()
             logger.info("Using verified TLS with certifi for Supabase pooler host")
     else:
-        # Direct DB host: verified TLS
+        # Direct DB host: verified TLS via asyncpg SSL context
         verify_ctx = ssl.create_default_context(cafile=certifi.where())
         connect_args["ssl"] = verify_ctx
         logger.info("Using verified TLS with certifi for Supabase direct host")
 
 # If still using pooler, disable prepared statement caches for PgBouncer transaction/statement poolers
-if "pooler.supabase.com" in effective_database_url or ":6543" in effective_database_url:
-    connect_args["prepared_statement_cache_size"] = 0
-    connect_args["statement_cache_size"] = 0
-    logger.info("Using Transaction pooler - disabled asyncpg prepared statement caches")
+if using_pooler:
+    # If psycopg is used, disable server-side prepared statements entirely
+    try:
+        if "+psycopg" in (drivername or make_url(effective_database_url).drivername or ""):
+            connect_args["prepare_threshold"] = 0
+            logger.info("Using PgBouncer pooler with psycopg: prepare_threshold=0")
+        else:
+            # asyncpg path: best-effort cache disables
+            connect_args["prepared_statement_cache_size"] = 0
+            connect_args["statement_cache_size"] = 0
+            logger.info("Using PgBouncer pooler with asyncpg: disabled asyncpg statement caches")
+    except Exception:
+        # Fallback to asyncpg disables
+        connect_args["prepared_statement_cache_size"] = 0
+        connect_args["statement_cache_size"] = 0
 else:
-    logger.info("Not using Transaction pooler - keeping default statement cache")
+    logger.info("Not using PgBouncer pooler - keeping default statement cache")
 
 engine = create_async_engine(
     effective_database_url,

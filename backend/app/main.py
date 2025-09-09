@@ -51,12 +51,14 @@ async def lifespan(app: FastAPI):
     if settings.environment == "production" and "pooler.supabase.com:6543" in settings.database_url:
         logger.info("Using Supabase Transaction pooler (IPv4 compatible) for Railway")
     
-    try:
-        await init_db()
-        logger.info("Database initialized")
-    except Exception as e:
-        logger.error(f"Database initialization failed: {e}")
-        logger.warning("Continuing startup without active DB connection. Detailed health will reflect DB status.")
+    # Only initialize DB schema in non-production to avoid PgBouncer prepared statement issues on startup
+    if settings.environment.lower() != "production":
+        try:
+            await init_db()
+            logger.info("Database initialized (non-production)")
+        except Exception as e:
+            logger.error(f"Database initialization failed: {e}")
+            logger.warning("Continuing startup without active DB connection. Detailed health will reflect DB status.")
     
     yield
     
