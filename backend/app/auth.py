@@ -146,23 +146,38 @@ async def verify_token(token: str) -> Dict[str, Any]:
                 logger.error("JWT secret not configured for HS256 algorithm")
                 raise AuthenticationError("JWT configuration error")
             
-            try:
-                payload = jwt.decode(
-                    token,
-                    key=settings.jwt_secret,
-                    algorithms=["HS256"],
-                    audience=settings.jwt_audience,
-                    options={
-                        "verify_signature": True,
-                        "verify_aud": True,
-                        "verify_exp": True,
-                        "verify_iat": True,
-                        "verify_nbf": True,
-                    }
-                )
-                logger.info("JWT token verified successfully with HS256")
-            except JWTError as e:
-                logger.error(f"JWT verification failed with HS256: {e}")
+            # Try with raw secret first; if it fails, try base64-decoded secret.
+            last_err: Optional[Exception] = None
+            for key_candidate in (settings.jwt_secret, None):
+                try:
+                    key_to_use = key_candidate
+                    if key_candidate is None:
+                        import base64
+                        key_to_use = base64.b64decode(settings.jwt_secret)
+                        logger.info("Decoded JWT secret from base64 for HS256 verification")
+                    payload = jwt.decode(
+                        token,
+                        key=key_to_use,
+                        algorithms=["HS256"],
+                        audience=settings.jwt_audience,
+                        options={
+                            "verify_signature": True,
+                            "verify_aud": True,
+                            "verify_exp": True,
+                            "verify_iat": True,
+                            "verify_nbf": True,
+                        }
+                    )
+                    logger.info("JWT token verified successfully with HS256")
+                    break
+                except JWTError as e:
+                    last_err = e
+                    payload = None  # type: ignore
+                except Exception as e:
+                    last_err = e
+                    payload = None  # type: ignore
+            if payload is None:  # type: ignore
+                logger.error(f"JWT verification failed with HS256: {last_err}")
                 raise AuthenticationError("Invalid or expired token")
         else:
             # For RS256, use JWKS
