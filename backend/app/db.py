@@ -4,6 +4,7 @@ Database configuration and async SQLAlchemy setup for Supabase PostgreSQL.
 
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.pool import NullPool
 try:
     from sqlalchemy.ext.asyncio import async_sessionmaker
 except ImportError:
@@ -31,20 +32,20 @@ connect_args = {}
 logger.info(f"Database URL for connection: {settings.database_url}")
 if "pooler.supabase.com" in settings.database_url or ":6543" in settings.database_url:
     # Disable prepared statements for PgBouncer transaction/statement pooler compatibility
-    # asyncpg supports 'statement_cache_size'; others can cause errors depending on version
+    # asyncpg>=0.27 uses 'prepared_statement_cache_size'; keep 'statement_cache_size' for backward compat.
+    connect_args["prepared_statement_cache_size"] = 0
     connect_args["statement_cache_size"] = 0
-    logger.info("Using Transaction pooler - disabled statement cache")
+    logger.info("Using Transaction pooler - disabled asyncpg prepared statement caches")
 else:
     logger.info("Not using Transaction pooler - keeping default statement cache")
 
 engine = create_async_engine(
     settings.database_url,
-    echo=settings.debug,  # Log SQL queries in debug mode
-    pool_pre_ping=True,   # Validate connections before use
-    pool_recycle=3600,    # Recycle connections every hour
-    pool_size=20,         # Connection pool size
-    max_overflow=10,      # Additional connections beyond pool_size
-    connect_args=connect_args,  # Pass asyncpg-specific arguments
+    echo=settings.debug,          # Log SQL queries in debug mode
+    pool_pre_ping=True,           # Validate connections before use
+    pool_recycle=3600,            # Recycle connections every hour (harmless with NullPool)
+    poolclass=NullPool,           # Rely on PgBouncer; avoid app-level pooling to prevent prepared stmt reuse
+    connect_args=connect_args,    # Pass asyncpg-specific arguments
 )
 
 # Create async session factory
