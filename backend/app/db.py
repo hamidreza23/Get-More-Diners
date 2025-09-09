@@ -30,9 +30,12 @@ settings = get_settings()
 connect_args = {}
 logger.info(f"Database URL for connection: {settings.database_url}")
 if "pooler.supabase.com" in settings.database_url or ":6543" in settings.database_url:
-    # Disable statement cache for Transaction pooler compatibility
+    # Disable prepared statements for PgBouncer transaction/statement pooler compatibility
+    # asyncpg parameters: statement_cache_size (current), prepared_statement_cache_size (legacy), prepare_threshold
     connect_args["statement_cache_size"] = 0
-    logger.info("Using Transaction pooler - disabled statement cache")
+    connect_args["prepared_statement_cache_size"] = 0  # legacy name for older asyncpg
+    connect_args["prepare_threshold"] = 0
+    logger.info("Using Transaction pooler - disabled prepared statements and caches")
 else:
     logger.info("Not using Transaction pooler - keeping default statement cache")
 
