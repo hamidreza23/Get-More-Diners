@@ -24,7 +24,7 @@ async def check_user_deleted(user_id: str, db: AsyncSession) -> bool:
     try:
         check_deleted_query = text("""
             SELECT user_id FROM public.deleted_users WHERE user_id = :user_id
-        """)
+        """).execution_options(postgresql_prepare=False)
         result = await db.execute(check_deleted_query, {"user_id": user_id})
         deleted_user = result.fetchone()
         return deleted_user is not None
@@ -87,7 +87,7 @@ async def get_my_restaurant(
             FROM public.restaurants
             WHERE owner_user_id = :user_id
             LIMIT 1
-        """)
+        """).execution_options(postgresql_prepare=False)
         
         result = await db.execute(query, {"user_id": current_user_id})
         restaurant = result.fetchone()
@@ -103,7 +103,7 @@ async def get_my_restaurant(
                     )
                     RETURNING id, owner_user_id, name, cuisine, city, state,
                               contact_email, contact_phone, website_url, logo_url, caption, created_at
-                """)
+                """).execution_options(postgresql_prepare=False)
                 insert_result = await db.execute(insert_query, {"user_id": current_user_id})
                 await db.commit()
                 restaurant = insert_result.fetchone()
@@ -177,7 +177,7 @@ async def upsert_my_restaurant(
                 caption = EXCLUDED.caption
             RETURNING id, owner_user_id, name, cuisine, city, state,
                       contact_email, contact_phone, website_url, logo_url, caption, created_at
-        """)
+        """).execution_options(postgresql_prepare=False)
         
         # Note: This assumes a unique constraint on owner_user_id
         # If not in schema, we'll need to check for existing first
@@ -206,7 +206,7 @@ async def upsert_my_restaurant(
             # Check if restaurant exists
             check_query = text("""
                 SELECT id FROM public.restaurants WHERE owner_user_id = :user_id
-            """)
+            """).execution_options(postgresql_prepare=False)
             check_result = await db.execute(check_query, {"user_id": current_user_id})
             existing = check_result.fetchone()
             
@@ -219,7 +219,7 @@ async def upsert_my_restaurant(
                     WHERE owner_user_id = :user_id
                     RETURNING id, owner_user_id, name, cuisine, city, state, 
                               contact_email, contact_phone, website_url, logo_url, caption, created_at
-                """)
+                """).execution_options(postgresql_prepare=False)
             else:
                 # Insert new
                 update_query = text("""
@@ -230,7 +230,7 @@ async def upsert_my_restaurant(
                     )
                     RETURNING id, owner_user_id, name, cuisine, city, state, 
                               contact_email, contact_phone, website_url, logo_url, caption, created_at
-                """)
+                """).execution_options(postgresql_prepare=False)
             
             result = await db.execute(update_query, {
                 "user_id": current_user_id,
@@ -317,7 +317,7 @@ async def delete_my_account(
                     user_id UUID PRIMARY KEY,
                     deleted_at TIMESTAMPTZ DEFAULT NOW()
                 )
-            """)
+            """).execution_options(postgresql_prepare=False)
             await db.execute(create_deleted_users_table)
             
             # Mark user as deleted
@@ -326,7 +326,7 @@ async def delete_my_account(
                 VALUES (:user_id, NOW())
                 ON CONFLICT (user_id) DO UPDATE SET
                     deleted_at = NOW()
-            """)
+            """).execution_options(postgresql_prepare=False)
             await db.execute(mark_user_deleted, {"user_id": current_user_id})
             logger.info(f"Marked user {current_user_id} as deleted")
         except Exception as e:
@@ -342,7 +342,7 @@ async def delete_my_account(
                 JOIN public.restaurants r ON c.restaurant_id = r.id
                 WHERE r.owner_user_id = :user_id
             )
-        """)
+        """).execution_options(postgresql_prepare=False)
         result1 = await db.execute(delete_recipients_query, {"user_id": current_user_id})
         logger.info(f"Deleted {result1.rowcount} campaign recipients")
         
@@ -354,7 +354,7 @@ async def delete_my_account(
                 FROM public.restaurants 
                 WHERE owner_user_id = :user_id
             )
-        """)
+        """).execution_options(postgresql_prepare=False)
         result2 = await db.execute(delete_campaigns_query, {"user_id": current_user_id})
         logger.info(f"Deleted {result2.rowcount} campaigns")
         
@@ -362,7 +362,7 @@ async def delete_my_account(
         delete_restaurants_query = text("""
             DELETE FROM public.restaurants 
             WHERE owner_user_id = :user_id
-        """)
+        """).execution_options(postgresql_prepare=False)
         result3 = await db.execute(delete_restaurants_query, {"user_id": current_user_id})
         logger.info(f"Deleted {result3.rowcount} restaurants")
         

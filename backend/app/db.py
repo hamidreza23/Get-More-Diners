@@ -139,7 +139,8 @@ engine = create_async_engine(
     pool_pre_ping=True,           # Validate connections before use
     pool_recycle=3600,            # Recycle connections every hour (harmless with NullPool)
     poolclass=NullPool,           # Rely on PgBouncer; avoid app-level pooling to prevent prepared stmt reuse
-    connect_args=connect_args,    # Pass asyncpg-specific arguments
+    connect_args=connect_args,    # Pass driver-specific arguments
+    execution_options={"postgresql_prepare": False},  # never use server-side prepares under PgBouncer
 )
 
 # Create async session factory
