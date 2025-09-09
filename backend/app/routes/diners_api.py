@@ -74,7 +74,7 @@ async def get_filter_options(
             FROM diners
             WHERE interests IS NOT NULL AND array_length(interests, 1) > 0
             ORDER BY interest
-        """)
+        """).execution_options(postgresql_prepare=False)
         interests_result = await db.execute(interests_query)
         interests = [row[0] for row in interests_result.fetchall()]
         
@@ -84,7 +84,7 @@ async def get_filter_options(
             FROM diners
             WHERE seniority IS NOT NULL AND seniority != ''
             ORDER BY seniority
-        """)
+        """).execution_options(postgresql_prepare=False)
         seniority_result = await db.execute(seniority_query)
         seniority_levels = [row[0] for row in seniority_result.fetchall()]
         
@@ -94,7 +94,7 @@ async def get_filter_options(
             FROM diners
             WHERE state IS NOT NULL AND state != ''
             ORDER BY state
-        """)
+        """).execution_options(postgresql_prepare=False)
         states_result = await db.execute(states_query)
         states = [row[0] for row in states_result.fetchall()]
         
@@ -104,7 +104,7 @@ async def get_filter_options(
             FROM diners
             WHERE city IS NOT NULL AND city != ''
             ORDER BY city
-        """)
+        """).execution_options(postgresql_prepare=False)
         cities_result = await db.execute(cities_query)
         cities = [row[0] for row in cities_result.fetchall()]
         
@@ -276,7 +276,7 @@ async def get_diners(
             SELECT COUNT(*) as total
             FROM diners
             {where_clause}
-        """)
+        """).execution_options(postgresql_prepare=False)
         
         count_result = await db.execute(count_query, params)
         total = count_result.scalar()
@@ -303,7 +303,7 @@ async def get_diners(
             {where_clause}
             ORDER BY first_name, last_name, phone
             LIMIT :limit OFFSET :offset
-        """)
+        """).execution_options(postgresql_prepare=False)
         
         # Add pagination params
         params.update({
