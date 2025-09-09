@@ -21,6 +21,7 @@ from sqlalchemy import MetaData
 import logging
 
 from .config import get_settings
+from sqlalchemy.engine.url import make_url, URL
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +31,43 @@ settings = get_settings()
 # Create async engine with Transaction pooler compatibility
 connect_args = {}
 logger.info(f"Database URL for connection: {settings.database_url}")
-if "pooler.supabase.com" in settings.database_url or ":6543" in settings.database_url:
-    # Disable prepared statements for PgBouncer transaction/statement pooler compatibility
-    # asyncpg>=0.27 uses 'prepared_statement_cache_size'; keep 'statement_cache_size' for backward compat.
+
+# Derive an effective URL: for MVP stability, rewrite Supabase pooler URL to direct DB host (5432)
+effective_database_url = settings.database_url
+try:
+    url = make_url(settings.database_url)
+    host = url.host or ""
+    port = url.port or None
+    if ("pooler.supabase.com" in host) or (port == 6543):
+        # Try to extract ref id from username 'postgres.<ref>'
+        ref = None
+        if url.username and "." in url.username:
+            parts = url.username.split(".")
+            if len(parts) >= 2 and parts[0] == "postgres":
+                ref = parts[1]
+        if ref:
+            rewritten = URL.create(
+                drivername=url.drivername,
+                username="postgres",
+                password=url.password,
+                host=f"db.{ref}.supabase.co",
+                port=5432,
+                database=url.database,
+                query=url.query,
+            )
+            effective_database_url = str(rewritten)
+            logger.info("Rewriting pooler URL to direct DB for MVP stability: %s", effective_database_url)
+        else:
+            logger.info("Pooler URL detected but could not extract ref; using pooler as-is")
+except Exception as e:
+    logger.warning("Failed to parse/possibly rewrite DATABASE_URL: %s", e)
+
+# If using Supabase, ensure TLS is used
+if "supabase.co" in effective_database_url:
+    connect_args["ssl"] = True
+
+# If still using pooler, disable prepared statement caches for PgBouncer transaction/statement poolers
+if "pooler.supabase.com" in effective_database_url or ":6543" in effective_database_url:
     connect_args["prepared_statement_cache_size"] = 0
     connect_args["statement_cache_size"] = 0
     logger.info("Using Transaction pooler - disabled asyncpg prepared statement caches")
@@ -40,7 +75,7 @@ else:
     logger.info("Not using Transaction pooler - keeping default statement cache")
 
 engine = create_async_engine(
-    settings.database_url,
+    effective_database_url,
     echo=settings.debug,          # Log SQL queries in debug mode
     pool_pre_ping=True,           # Validate connections before use
     pool_recycle=3600,            # Recycle connections every hour (harmless with NullPool)
