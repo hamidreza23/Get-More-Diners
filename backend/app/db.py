@@ -36,12 +36,14 @@ logger.info(f"Database URL for connection: {settings.database_url}")
 
 # Derive an effective URL: optionally rewrite Supabase pooler URL to direct DB host (5432)
 effective_database_url = settings.database_url
+parsed_host = None
+parsed_port: int | None = None
 if settings.use_direct_db:
     try:
         url = make_url(settings.database_url)
-        host = url.host or ""
-        port = url.port or None
-        if ("pooler.supabase.com" in host) or (port == 6543):
+        parsed_host = url.host or ""
+        parsed_port = url.port or None
+        if ("pooler.supabase.com" in parsed_host) or (parsed_port == 6543):
             # Try to extract ref id from username 'postgres.<ref>'
             ref = None
             if url.username and "." in url.username:
@@ -64,12 +66,34 @@ if settings.use_direct_db:
                 logger.info("Pooler URL detected but could not extract ref; using pooler as-is")
     except Exception as e:
         logger.warning("Failed to parse/possibly rewrite DATABASE_URL: %s", e)
+else:
+    try:
+        url = make_url(settings.database_url)
+        parsed_host = url.host or ""
+        parsed_port = url.port or None
+    except Exception:
+        parsed_host = None
+        parsed_port = None
 
 # If using Supabase, ensure TLS is used
 if "supabase.co" in effective_database_url:
-    # Create a verified SSL context using certifi CA bundle
-    ssl_ctx = ssl.create_default_context(cafile=certifi.where())
-    connect_args["ssl"] = ssl_ctx
+    # For pooler hosts, allow insecure TLS by default (can be overridden) to avoid self-signed CA issues.
+    if (parsed_host and "pooler.supabase.com" in parsed_host) or (parsed_port == 6543):
+        if settings.db_ssl_insecure:
+            insecure_ctx = ssl.create_default_context()
+            insecure_ctx.check_hostname = False
+            insecure_ctx.verify_mode = ssl.CERT_NONE
+            connect_args["ssl"] = insecure_ctx
+            logger.warning("Using INSECURE TLS (no cert verification) for Supabase pooler host. Set DB_SSL_INSECURE=false to enforce verification.")
+        else:
+            verify_ctx = ssl.create_default_context(cafile=certifi.where())
+            connect_args["ssl"] = verify_ctx
+            logger.info("Using verified TLS with certifi for Supabase pooler host")
+    else:
+        # Direct DB host: verified TLS
+        verify_ctx = ssl.create_default_context(cafile=certifi.where())
+        connect_args["ssl"] = verify_ctx
+        logger.info("Using verified TLS with certifi for Supabase direct host")
 
 # If still using pooler, disable prepared statement caches for PgBouncer transaction/statement poolers
 if "pooler.supabase.com" in effective_database_url or ":6543" in effective_database_url:

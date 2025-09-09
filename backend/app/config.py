@@ -79,6 +79,11 @@ class Settings(BaseSettings):
 
     # DB connectivity options
     use_direct_db: bool = Field(default=False, description="Use direct DB host (5432) instead of Supabase pooler", alias="USE_DIRECT_DB")
+    db_ssl_insecure: bool = Field(
+        default=True,
+        description="When using Supabase pooler, allow insecure TLS (no cert verification) to avoid self-signed CA issues",
+        alias="DB_SSL_INSECURE",
+    )
     
     class Config:
         env_file = ".env"
