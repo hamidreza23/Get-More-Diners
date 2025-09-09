@@ -40,6 +40,11 @@ class Settings(BaseSettings):
         description="Comma-separated list of allowed CORS origins",
         alias="ALLOWED_ORIGINS"
     )
+    allowed_origin_regex: Optional[str] = Field(
+        default=r"https://.*\.vercel\.app",
+        description="Regex for allowed CORS origins (e.g., Vercel preview domains)",
+        alias="ALLOWED_ORIGIN_REGEX"
+    )
     allowed_methods_str: str = Field(
         default="GET,POST,PUT,DELETE,PATCH,OPTIONS,HEAD",
         description="Comma-separated list of allowed HTTP methods",

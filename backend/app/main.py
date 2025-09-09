@@ -84,6 +84,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
+    allow_origin_regex=settings.allowed_origin_regex,
     allow_credentials=True,
     allow_methods=settings.allowed_methods,
     allow_headers=["*"],  # Allow all headers for file uploads
