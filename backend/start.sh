@@ -13,4 +13,4 @@ pip install -r requirements.txt
 echo "Starting uvicorn server..."
 PORT=${PORT:-8000}
 echo "Using PORT=$PORT"
-uvicorn app.main:app --host 0.0.0.0 --port $PORT
+uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips='*'

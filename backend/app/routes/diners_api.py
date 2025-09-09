@@ -193,6 +193,7 @@ async def test_diners(
 
 
 @router.get("/", response_model=DinersResponse)
+@router.get("", response_model=DinersResponse)
 async def get_diners(
     request: Request,
     city: Optional[str] = Query(None, description="Filter by city (case-insensitive)"),

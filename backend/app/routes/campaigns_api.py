@@ -81,6 +81,7 @@ class CampaignDetail(BaseModel):
 
 
 @router.post("/", response_model=CampaignCreateResponse)
+@router.post("", response_model=CampaignCreateResponse)
 async def create_campaign(
     campaign_data: CampaignCreate,
     # request: Request, # Removed for testing
@@ -232,6 +233,7 @@ async def create_campaign(
 
 
 @router.get("/", response_model=List[CampaignListItem])
+@router.get("", response_model=List[CampaignListItem])
 async def list_campaigns(
     # request: Request, # Removed for testing
     db: AsyncSession = Depends(get_db)
