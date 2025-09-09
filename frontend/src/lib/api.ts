@@ -188,14 +188,21 @@ class APIClient {
   }
 
   private async getAuthHeaders(): Promise<Record<string, string>> {
-    const { data: { session } } = await this.supabase.auth.getSession()
-    
-    if (!session?.access_token) {
+    // Retry a few times to avoid race with session initialization
+    let accessToken: string | null = null
+    for (let i = 0; i < 3; i++) {
+      const { data: { session } } = await this.supabase.auth.getSession()
+      accessToken = session?.access_token ?? null
+      if (accessToken) break
+      await new Promise((r) => setTimeout(r, 300))
+    }
+
+    if (!accessToken) {
       throw new APIError('Authentication required', 401)
     }
 
     return {
-      'Authorization': `Bearer ${session.access_token}`,
+      'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
     }
   }

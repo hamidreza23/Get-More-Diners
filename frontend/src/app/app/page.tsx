@@ -79,16 +79,11 @@ export default function DashboardPage() {
                   {campaigns.slice(0, 3).map((campaign) => (
                     <div key={campaign.id} className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">{campaign.subject || `${campaign.channel.toUpperCase()} Campaign`}</p>
+                        <p className="font-medium">{campaign.name || (campaign.subject || `${campaign.channel.toUpperCase()} Campaign`)}</p>
                         <p className="text-sm text-muted-foreground">
                           {campaign.sent_count || 0} sent • {campaign.click_rate || 0}% CTR
                         </p>
                       </div>
-                      <Link href={`/app/campaigns/${campaign.id}`}>
-                        <Button variant="outline" size="sm">
-                          View
-                        </Button>
-                      </Link>
                     </div>
                   ))}
                 </div>
