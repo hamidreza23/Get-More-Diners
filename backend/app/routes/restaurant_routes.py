@@ -29,7 +29,7 @@ router = APIRouter()
 @router.post("/", response_model=RestaurantResponse)
 async def create_restaurant(
     restaurant_data: RestaurantCreate,
-    # request: Request, # Removed for testing
+    request: Request,
     db: AsyncSession = Depends(get_db)
 ) -> RestaurantResponse:
     """
@@ -45,7 +45,7 @@ async def create_restaurant(
     """
     try:
         # Use hardcoded user ID for testing
-        current_user_id = "235009c5-e2c6-4236-bb26-7c3640718a3f"
+        current_user_id = get_current_user_id_from_state(request)
         
         # Create restaurant with current user as owner
         query = insert(restaurants_table).values(

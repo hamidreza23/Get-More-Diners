@@ -84,7 +84,7 @@ class CampaignDetail(BaseModel):
 @router.post("", response_model=CampaignCreateResponse)
 async def create_campaign(
     campaign_data: CampaignCreate,
-    # request: Request, # Removed for testing
+    request: Request,
     db: AsyncSession = Depends(get_db)
 ) -> CampaignCreateResponse:
     """
@@ -98,8 +98,7 @@ async def create_campaign(
     5. Return campaign info with previews
     """
     try:
-        # Use hardcoded user ID for testing
-        current_user_id = "235009c5-e2c6-4236-bb26-7c3640718a3f"
+        current_user_id = get_current_user_id_from_state(request)
         
         # Validate email campaigns have subjects
         if campaign_data.channel == "email" and not campaign_data.subject:
@@ -235,7 +234,7 @@ async def create_campaign(
 @router.get("/", response_model=List[CampaignListItem])
 @router.get("", response_model=List[CampaignListItem])
 async def list_campaigns(
-    # request: Request, # Removed for testing
+    request: Request,
     db: AsyncSession = Depends(get_db)
 ) -> List[CampaignListItem]:
     """
@@ -244,8 +243,7 @@ async def list_campaigns(
     Returns array with campaign info and audience size.
     """
     try:
-        # Use hardcoded user ID for testing
-        current_user_id = "235009c5-e2c6-4236-bb26-7c3640718a3f"
+        current_user_id = get_current_user_id_from_state(request)
         
         # Get campaigns with detailed metrics
         query = text("""
@@ -300,15 +298,14 @@ async def list_campaigns(
 async def update_campaign_status(
     campaign_id: str,
     status_data: dict,
-    # request: Request, # Removed for testing
+    request: Request,
     db: AsyncSession = Depends(get_db)
 ):
     """
     Update campaign status (active, paused, stopped).
     """
     try:
-        # Use hardcoded user ID for testing
-        current_user_id = "235009c5-e2c6-4236-bb26-7c3640718a3f"
+        current_user_id = get_current_user_id_from_state(request)
         
         new_status = status_data.get("status")
         if new_status not in ["active", "paused", "stopped"]:
@@ -515,15 +512,14 @@ def build_audience_query(campaign_data: CampaignCreate) -> tuple:
 @router.delete("/{campaign_id}", response_model=dict)
 async def delete_campaign(
     campaign_id: str,
-    # request: Request, # Removed for testing
+    request: Request,
     db: AsyncSession = Depends(get_db)
 ) -> dict:
     """
     Delete a campaign and all its recipients.
     """
     try:
-        # Use hardcoded user ID for testing
-        current_user_id = "235009c5-e2c6-4236-bb26-7c3640718a3f"
+        current_user_id = get_current_user_id_from_state(request)
         
         # Verify campaign belongs to user
         campaign_query = text("""

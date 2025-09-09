@@ -64,7 +64,7 @@ class RestaurantResponse(BaseModel):
 
 @router.get("/restaurant")
 async def get_my_restaurant(
-    # request: Request, # Removed for testing
+    request: Request,
     db: AsyncSession = Depends(get_db)
 ) -> Optional[RestaurantResponse]:
     """
@@ -78,8 +78,7 @@ async def get_my_restaurant(
         Optional[RestaurantResponse]: Restaurant data if exists, None otherwise
     """
     try:
-        # Use hardcoded user ID for testing
-        current_user_id = "235009c5-e2c6-4236-bb26-7c3640718a3f"
+        current_user_id = get_current_user_id_from_state(request)
         
         # Query for user's restaurant
         query = text("""
@@ -123,7 +122,7 @@ async def get_my_restaurant(
 @router.put("/restaurant")
 async def upsert_my_restaurant(
     restaurant_data: RestaurantUpsert,
-    # request: Request, # Removed for testing
+    request: Request,
     db: AsyncSession = Depends(get_db)
 ) -> RestaurantResponse:
     """
@@ -138,8 +137,7 @@ async def upsert_my_restaurant(
         RestaurantResponse: Updated/created restaurant data
     """
     try:
-        # Use hardcoded user ID for testing
-        current_user_id = "235009c5-e2c6-4236-bb26-7c3640718a3f"
+        current_user_id = get_current_user_id_from_state(request)
         
         # Use PostgreSQL UPSERT with ON CONFLICT
         upsert_query = text("""
@@ -292,19 +290,7 @@ async def delete_my_account(
         # Check authentication state
         logger.info(f"Request state: authenticated={getattr(request.state, 'authenticated', False)}, user_id={getattr(request.state, 'user_id', None)}")
         
-        # TEMPORARY: For testing, extract user ID from Authorization header
-        # This bypasses the JWT verification issue
-        authorization = request.headers.get("Authorization")
-        if not authorization or not authorization.startswith("Bearer "):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing or invalid authorization header"
-            )
-        
-        # For now, we'll use a hardcoded user ID for testing
-        # In production, this should come from JWT verification
-        current_user_id = "235009c5-e2c6-4236-bb26-7c3640718a3f"  # From the frontend logs
-        logger.info(f"Using hardcoded user ID for testing: {current_user_id}")
+        current_user_id = get_current_user_id_from_state(request)
         
         # Create a simple deleted_users table to track deleted users
         try:
