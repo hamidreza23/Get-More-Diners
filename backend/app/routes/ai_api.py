@@ -5,6 +5,7 @@ Implements Offer Writer, Conciseness Checker, and Audience Advisor agents.
 
 from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, Depends, HTTPException, status
+import asyncio
 from pydantic import BaseModel, Field, validator
 import logging
 
@@ -132,6 +133,7 @@ class FoodImageResponse(BaseModel):
 @router.post("/offer", response_model=OfferResponse)
 async def generate_offer(
     request_data: OfferRequest,
+    current_user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db)
 ) -> OfferResponse:
     """
@@ -149,8 +151,7 @@ async def generate_offer(
         OfferResponse: Generated and processed content with metadata
     """
     try:
-        # Use hardcoded user ID for testing
-        current_user_id = "235009c5-e2c6-4236-bb26-7c3640718a3f"
+        # current_user_id is provided via dependency
         logger.info(f"Generating {request_data.channel} offer for user {current_user_id}")
         
         # Get restaurant details
@@ -186,7 +187,20 @@ async def generate_offer(
         if output_format == 'json':
             output_format = 'text'
             logger.info("JSON format temporarily disabled, using text format")
-        raw_content = await offer_writer.generate_offer(agent_request, output_format)
+        # AI demo mode or upstream not configured → fast mock
+        if settings.ai_demo_mode or not settings.openai_api_key:
+            logger.info("AI_DEMO_MODE active or OpenAI not configured; returning fallback offer")
+            return create_fallback_offer(request_data, current_user_id)
+
+        # Otherwise, call upstream with timeout
+        try:
+            raw_content = await asyncio.wait_for(
+                offer_writer.generate_offer(agent_request, output_format),
+                timeout=8.0
+            )
+        except Exception as e:
+            logger.error(f"Offer writer failed or timed out: {e}")
+            return create_fallback_offer(request_data, current_user_id)
         logger.info(f"Offer Writer generated content: {len(raw_content.body)} chars, format: {output_format}")
         
         # Stage 2: Post-process with Conciseness Checker agent

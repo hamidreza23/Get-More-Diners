@@ -275,6 +275,18 @@ export default function ComposePage() {
               <Icon name="auto_awesome" />
               <span className="truncate">{isGenerating ? 'Generating...' : 'Generate Content'}</span>
             </Button>
+            {isGenerating && (
+              <div className="mt-3 h-1 w-full bg-slate-200 rounded overflow-hidden">
+                <div className="h-full w-1/2 bg-[#13a4ec] animate-[loading_1.2s_ease_infinite]" style={{animationName: 'loading'}} />
+                <style jsx>{`
+                  @keyframes loading {
+                    0% { transform: translateX(-100%); }
+                    50% { transform: translateX(0%); }
+                    100% { transform: translateX(100%); }
+                  }
+                `}</style>
+              </div>
+            )}
 {message && (
               <div className="space-y-6">
                 {setup.channel === 'email' && (

@@ -11,6 +11,7 @@ from pydantic import BaseModel
 import logging
 
 from ..db import get_db
+from ..middleware import get_current_user_id_from_state
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,7 @@ class FilterOptionsResponse(BaseModel):
 
 @router.get("/filter-options", response_model=FilterOptionsResponse)
 async def get_filter_options(
+    request: Request,
     db: AsyncSession = Depends(get_db)
 ) -> FilterOptionsResponse:
     """
@@ -64,8 +66,7 @@ async def get_filter_options(
     Returns all unique values for interests, seniority levels, states, and cities.
     """
     try:
-        # Use hardcoded user ID for testing
-        current_user_id = "235009c5-e2c6-4236-bb26-7c3640718a3f"
+        current_user_id = get_current_user_id_from_state(request)
         
         # Get unique interests
         interests_query = text("""
@@ -218,8 +219,7 @@ async def get_diners(
     Only returns diners who have given consent for email OR SMS.
     """
     try:
-        # Use hardcoded user ID for testing
-        current_user_id = "235009c5-e2c6-4236-bb26-7c3640718a3f"
+        current_user_id = get_current_user_id_from_state(request)
         
         # Calculate offset
         offset = (page - 1) * pageSize
