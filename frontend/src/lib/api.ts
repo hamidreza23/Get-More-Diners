@@ -194,7 +194,18 @@ class APIClient {
       const { data: { session } } = await this.supabase.auth.getSession()
       accessToken = session?.access_token ?? null
       if (accessToken) break
-      await new Promise((r) => setTimeout(r, 300))
+      await new Promise((r) => setTimeout(r, 250))
+    }
+
+    // Fallback: ask server to read HttpOnly cookies and return the token
+    if (!accessToken) {
+      try {
+        const res = await fetch('/api/auth/session', { credentials: 'include' })
+        if (res.ok) {
+          const json = await res.json()
+          accessToken = json.access_token || null
+        }
+      } catch {}
     }
 
     if (!accessToken) {
