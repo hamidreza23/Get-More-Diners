@@ -134,7 +134,7 @@ export function AppNav({ className }: AppNavProps) {
     )
 
     return () => subscription.unsubscribe()
-  }, [router, supabase.auth])
+  }, [router])
 
   const handleSignOut = async () => {
     const supabase = createClient()
