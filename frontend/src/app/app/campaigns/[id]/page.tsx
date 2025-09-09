@@ -42,7 +42,6 @@ export default function CampaignDetailPage() {
   const params = useParams()
   const [campaign, setCampaign] = useState<Campaign | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   const campaignId = params.id as string
 
@@ -54,6 +53,7 @@ export default function CampaignDetailPage() {
 
   const loadCampaign = async () => {
     try {
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/signin'); return }
 

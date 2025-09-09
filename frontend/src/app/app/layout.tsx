@@ -12,10 +12,10 @@ export default function AppLayout({
 }) {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   useEffect(() => {
     const checkAuth = async () => {
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       const { data: { session } } = await supabase.auth.getSession()
       
@@ -34,18 +34,17 @@ export default function AppLayout({
 
     checkAuth()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_OUT') {
-          router.push('/signin')
-        } else if (event === 'SIGNED_IN' && session) {
-          setLoading(false)
-        }
+    const supabase = createClient()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        router.push('/signin')
+      } else if (event === 'SIGNED_IN' && session) {
+        setLoading(false)
       }
-    )
+    })
 
     return () => subscription.unsubscribe()
-  }, [router, supabase.auth])
+  }, [router])
 
   if (loading) {
     return (

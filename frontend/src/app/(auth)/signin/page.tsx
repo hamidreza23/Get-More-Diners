@@ -19,11 +19,11 @@ export default function SignInPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [infoMsg, setInfoMsg] = useState<string | null>(null)
   const [resending, setResending] = useState(false)
-  const supabase = createClient()
 
   // Check if user is already authenticated and redirect if so
   useEffect(() => {
     const checkAuth = async () => {
+      const supabase = createClient()
       try {
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.access_token) {
@@ -45,6 +45,7 @@ export default function SignInPage() {
     setInfoMsg(null)
 
     try {
+      const supabase = createClient()
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -80,6 +81,7 @@ export default function SignInPage() {
     setErrorMsg(null)
     setInfoMsg(null)
     try {
+      const supabase = createClient()
       // Resend signup confirmation email if user registered but not confirmed
       const { error } = await supabase.auth.resend({
         type: 'signup',
@@ -112,6 +114,7 @@ export default function SignInPage() {
       return
     }
     try {
+      const supabase = createClient()
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
       })

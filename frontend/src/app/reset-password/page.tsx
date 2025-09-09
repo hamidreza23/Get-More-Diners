@@ -10,7 +10,6 @@ import { toast } from 'sonner'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
-  const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -18,6 +17,7 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const ensureSession = async () => {
+      const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) {
         toast.error('Your reset link is invalid or expired. Please request a new one.')
@@ -40,6 +40,7 @@ export default function ResetPasswordPage() {
     }
     setLoading(true)
     try {
+      const supabase = createClient()
       const { error } = await supabase.auth.updateUser({ password })
       if (error) {
         setErrorMsg(error.message)

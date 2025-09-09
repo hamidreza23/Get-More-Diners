@@ -22,11 +22,11 @@ export default function SignUpPage() {
   const [emailHint, setEmailHint] = useState<string | null>(null)
   const [emailConfirmed, setEmailConfirmed] = useState<boolean | null>(null)
   const [resending, setResending] = useState(false)
-  const supabase = createClient()
 
   // Check if user is already authenticated and redirect if so
   useEffect(() => {
     const checkAuth = async () => {
+      const supabase = createClient()
       try {
         const { data: { session } } = await supabase.auth.getSession()
         if (session?.access_token) {
@@ -78,6 +78,7 @@ export default function SignUpPage() {
   const handleResendConfirmation = async () => {
     setResending(true)
     try {
+      const supabase = createClient()
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email,
@@ -121,6 +122,7 @@ export default function SignUpPage() {
           }
         }
       } catch {}
+      const supabase = createClient()
       const { data, error } = await supabase.auth.signUp({
         email,
         password,

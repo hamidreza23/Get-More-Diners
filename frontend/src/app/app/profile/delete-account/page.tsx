@@ -15,7 +15,6 @@ export default function DeleteAccountPage() {
   const [confirmationText, setConfirmationText] = useState('')
   const [showConfirmation, setShowConfirmation] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const handleDeleteAccount = async () => {
     if (confirmationText !== 'DELETE') {
@@ -26,6 +25,7 @@ export default function DeleteAccountPage() {
     setIsDeleting(true)
     try {
       // Get current user
+      const supabase = createClient()
       const { data: { user }, error: userError } = await supabase.auth.getUser()
       
       if (userError || !user) {

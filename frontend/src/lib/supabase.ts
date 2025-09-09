@@ -1,18 +1,21 @@
 import { createBrowserClient, createServerClient } from '@supabase/ssr'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 // Client-side Supabase client
-export const createClient = () =>
-  createBrowserClient(supabaseUrl, supabaseAnonKey)
+export const createClient = () => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+}
 
 // Server-side Supabase client - only use in Server Components
 export const createServerSupabaseClient = async () => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables')
+  }
   const { cookies } = await import('next/headers')
   const cookieStore = cookies()
 
@@ -185,4 +188,6 @@ export type Database = {
 }
 
 // Create a typed client
-export const typedSupabase = createClient()
+// Prefer calling createClient() directly where needed to avoid
+// initializing a client at import time during prerendering.
+export const getSupabase = () => createClient()

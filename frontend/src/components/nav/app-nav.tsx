@@ -82,10 +82,11 @@ export function AppNav({ className }: AppNavProps) {
   const [user, setUser] = useState<any>(null)
   const [restaurant, setRestaurant] = useState<any>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const supabase = createClient()
+  // Create client only when needed to avoid SSR-time initialization
 
   useEffect(() => {
     const getUser = async () => {
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
       return user
@@ -94,6 +95,7 @@ export function AppNav({ className }: AppNavProps) {
     const getRestaurant = async () => {
       try {
         // Check if we have a valid session before making the API call
+        const supabase = createClient()
         const { data: { session } } = await supabase.auth.getSession()
         if (!session?.access_token) {
           console.log('No valid session, skipping restaurant data fetch')
@@ -119,6 +121,7 @@ export function AppNav({ className }: AppNavProps) {
 
     initializeData()
 
+    const supabase = createClient()
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null)
@@ -134,6 +137,7 @@ export function AppNav({ className }: AppNavProps) {
   }, [router, supabase.auth])
 
   const handleSignOut = async () => {
+    const supabase = createClient()
     try {
       await supabase.auth.signOut()
       toast.success('Signed out successfully')

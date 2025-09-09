@@ -16,7 +16,6 @@ interface GetMoreDinersHeaderProps {
 export function GetMoreDinersHeader({ currentPage }: GetMoreDinersHeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const navItems = [
     { href: "/app", label: "Dashboard" },
@@ -31,6 +30,7 @@ export function GetMoreDinersHeader({ currentPage }: GetMoreDinersHeaderProps) {
   }
 
   const handleLogout = async () => {
+    const supabase = createClient()
     try {
       await supabase.auth.signOut()
       toast.success('Successfully signed out')
