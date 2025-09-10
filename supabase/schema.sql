@@ -4,6 +4,7 @@
 
 -- Enable required extensions
 create extension if not exists "uuid-ossp";
+create extension if not exists "pgcrypto"; -- for gen_random_uuid if used
 create extension if not exists "pg_trgm";
 create extension if not exists "btree_gin";
 
@@ -19,6 +20,8 @@ create table public.restaurants (
   contact_email text,
   contact_phone text,
   website_url text,
+  logo_url text,
+  caption text,
   created_at timestamptz default now(),
   constraint fk_owner foreign key (owner_user_id) references auth.users (id) on delete cascade
 );

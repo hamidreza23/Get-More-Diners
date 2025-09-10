@@ -99,7 +99,7 @@ async def get_my_restaurant(
                     INSERT INTO public.restaurants (
                         id, owner_user_id, name, cuisine, city, state, contact_email, contact_phone, website_url, logo_url, caption
                     ) VALUES (
-                        gen_random_uuid(), :user_id, 'My Restaurant', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+                        uuid_generate_v4(), :user_id, 'My Restaurant', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
                     )
                     RETURNING id, owner_user_id, name, cuisine, city, state,
                               contact_email, contact_phone, website_url, logo_url, caption, created_at
@@ -162,7 +162,7 @@ async def upsert_my_restaurant(
             INSERT INTO public.restaurants (
                 id, owner_user_id, name, cuisine, city, state, contact_email, contact_phone, website_url, logo_url, caption
             ) VALUES (
-                gen_random_uuid(), :user_id, :name, :cuisine, :city, :state, :contact_email, :contact_phone, :website_url, :logo_url, :caption
+                uuid_generate_v4(), :user_id, :name, :cuisine, :city, :state, :contact_email, :contact_phone, :website_url, :logo_url, :caption
             )
             ON CONFLICT (owner_user_id)
             DO UPDATE SET
@@ -226,7 +226,7 @@ async def upsert_my_restaurant(
                     INSERT INTO public.restaurants (
                         id, owner_user_id, name, cuisine, city, state, contact_email, contact_phone, website_url, logo_url, caption
                     ) VALUES (
-                        gen_random_uuid(), :user_id, :name, :cuisine, :city, :state, :contact_email, :contact_phone, :website_url, :logo_url, :caption
+                        uuid_generate_v4(), :user_id, :name, :cuisine, :city, :state, :contact_email, :contact_phone, :website_url, :logo_url, :caption
                     )
                     RETURNING id, owner_user_id, name, cuisine, city, state, 
                               contact_email, contact_phone, website_url, logo_url, caption, created_at
