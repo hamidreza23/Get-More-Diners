@@ -23,6 +23,10 @@ create table public.restaurants (
   constraint fk_owner foreign key (owner_user_id) references auth.users (id) on delete cascade
 );
 
+-- Ensure one restaurant per owner (required by app upsert logic)
+alter table public.restaurants
+  add constraint uq_restaurants_owner unique (owner_user_id);
+
 -- DINERS
 -- Customer database for marketing campaigns
 create table public.diners (

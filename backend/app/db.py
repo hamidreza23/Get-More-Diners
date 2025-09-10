@@ -114,13 +114,16 @@ if "supabase.co" in effective_database_url:
         connect_args["ssl"] = verify_ctx
         logger.info("Using verified TLS with certifi for Supabase direct host")
 
-# If still using pooler, disable prepared statement caches for PgBouncer transaction/statement poolers
+# If still using pooler, disable prepared statements/caches for PgBouncer transaction/statement poolers
 if using_pooler:
     # If psycopg is used, disable server-side prepared statements entirely
     try:
         if "+psycopg" in (drivername or make_url(effective_database_url).drivername or ""):
-            connect_args["prepare_threshold"] = 0
-            logger.info("Using PgBouncer pooler with psycopg: prepare_threshold=0")
+            # Psycopg3 semantics:
+            # - prepare_threshold=0 => prepare on first execution (BAD for PgBouncer)
+            # - prepare_threshold=None => disable prepared statements
+            connect_args["prepare_threshold"] = None
+            logger.info("Using PgBouncer pooler with psycopg: disabled prepared statements (prepare_threshold=None)")
         else:
             # asyncpg path: best-effort cache disables
             connect_args["prepared_statement_cache_size"] = 0
